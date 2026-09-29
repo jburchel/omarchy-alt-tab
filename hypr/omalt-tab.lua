@@ -10,6 +10,10 @@
 -- Inside the submap TAB / SHIFT+TAB / arrows move the highlight, and letting
 -- go of MOD commits. Hyprland itself resets the submap on release, so the
 -- keyboard can never get stuck here even if the shell is not running.
+--
+-- The release binds must live in the global keymap: Hyprland matches a key
+-- release against the submap that was active when that key was *pressed*,
+-- and MOD goes down before the submap is entered.
 
 return function(opts)
   opts = opts or {}
@@ -18,10 +22,11 @@ return function(opts)
   local submap = "omalt-tab"
 
   local release_keys = ({
-    ALT = { "Alt_L", "Alt_R" },
+    -- Meta_* is what Alt reports when Shift was already held.
+    ALT = { "Alt_L", "Alt_R", "Meta_L", "Meta_R" },
     SUPER = { "Super_L", "Super_R" },
     CTRL = { "Control_L", "Control_R" },
-  })[mod] or { "Alt_L", "Alt_R" }
+  })[mod] or { "Alt_L", "Alt_R", "Meta_L", "Meta_R" }
 
   local function send(message)
     hl.dispatch(hl.dsp.event("omalt-tab:" .. message))
@@ -90,8 +95,23 @@ return function(opts)
     hl.bind(mod .. " + RETURN", finish("commit"))
     hl.bind(mod .. " + ESCAPE", finish("cancel"))
     hl.bind("ESCAPE", finish("cancel"))
-    for _, release_key in ipairs(release_keys) do
-      hl.bind(release_key, finish("commit"), { release = true, ignore_mods = true })
-    end
+    hl.bind("RETURN", finish("commit"))
   end)
+
+  -- Releasing MOD commits. Global binds (see the note at the top), guarded so
+  -- an ordinary Alt release does nothing. Release binds never swallow the key,
+  -- so apps still see Alt go up. Whether MOD is still in the modmask at
+  -- release time varies, so bind every combination; once the first one has
+  -- committed the submap is reset and the rest are no-ops.
+  local commit_on_release = function()
+    if hl.get_current_submap() == submap then
+      send("commit")
+      hl.dispatch(hl.dsp.submap("reset"))
+    end
+  end
+  for _, release_key in ipairs(release_keys) do
+    for _, mods in ipairs({ "", mod .. " + ", mod .. " + SHIFT + ", "SHIFT + " }) do
+      hl.bind(mods .. release_key, commit_on_release, { release = true })
+    end
+  end
 end
