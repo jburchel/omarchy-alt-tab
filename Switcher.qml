@@ -33,6 +33,11 @@ Item {
     property string scope: "all"
     property var windows: []
     property int selectedIndex: -1
+    // Whether the last session ever put the switcher on screen (quick taps
+    // should not). Reported by the `state` IPC call for tests.
+    property bool lastSessionShown: false
+
+    onShownChanged: if (root.shown) root.lastSessionShown = true
 
     readonly property var targetScreen: {
         var screens = Quickshell.screens;
@@ -74,6 +79,7 @@ Item {
         root.scope = store.values.scope;
         root.windows = root.filtered();
         root.selectedIndex = WindowList.initialIndex(root.windows, root.snapshot.active, direction);
+        root.lastSessionShown = false;
         root.active = true;
         if (store.values.showDelay <= 0)
             root.shown = true;
@@ -81,8 +87,25 @@ Item {
             showTimer.restart();
     }
 
+    // Snapshot windows in scope that still exist (a window can close while
+    // the switcher is up; one that just opened appears once Quickshell sees it).
     function filtered() {
-        return WindowList.filterWindows(root.snapshot.windows, root.scope, root.snapshot, store.values.includeSpecial);
+        var existing = {};
+        var toplevels = Hyprland.toplevels.values;
+        for (var i = 0; i < toplevels.length; i++)
+            existing[WindowList.normalizeAddress(toplevels[i].address)] = true;
+        var inScope = WindowList.filterWindows(root.snapshot.windows, root.scope, root.snapshot, store.values.includeSpecial);
+        return inScope.filter(function(w) { return existing[w.address] === true; });
+    }
+
+    // Recompute the list, keeping the selected window selected if it is still
+    // there, otherwise the same position.
+    function rebuild() {
+        var selected = root.windows[root.selectedIndex];
+        var index = root.selectedIndex;
+        root.windows = root.filtered();
+        var kept = selected ? WindowList.indexOfAddress(root.windows, selected.address) : -1;
+        root.selectedIndex = kept >= 0 ? kept : Math.min(Math.max(index, 0), root.windows.length - 1);
     }
 
     function move(delta) {
@@ -101,6 +124,11 @@ Item {
         var kept = selected ? WindowList.indexOfAddress(root.windows, selected.address) : -1;
         root.selectedIndex = kept >= 0 ? kept : WindowList.initialIndex(root.windows, root.snapshot.active, "next");
         root.shown = true;
+    }
+
+    Connections {
+        target: Hyprland.toplevels
+        function onValuesChanged() { if (root.active) root.rebuild(); }
     }
 
     function commit() {
@@ -230,6 +258,21 @@ Item {
         }
         function status(): string {
             return JSON.stringify(store.values);
+        }
+        // Live session state, for scripts and tests.
+        function state(): string {
+            var selected = root.windows[root.selectedIndex];
+            return JSON.stringify({
+                active: root.active,
+                shown: root.shown,
+                lastSessionShown: root.lastSessionShown,
+                scope: root.scope,
+                screen: root.targetScreen ? String(root.targetScreen.name) : "",
+                columns: cardGrid.columns,
+                selectedIndex: root.selectedIndex,
+                selected: selected ? selected.address : "",
+                windows: root.windows.map(function(w) { return w.address; })
+            });
         }
     }
 

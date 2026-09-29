@@ -2,13 +2,18 @@
   "schemaVersion": 1,
   "id": "io.github.jburchel.omalt-tab",
   "name": "Omalt-tab",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "Jim Burchel",
   "license": "MIT",
-  "description": "Windows/macOS-style Alt+Tab for Omarchy: hold Alt, tap Tab through live window previews in most-recently-used order, release to jump to that window on its workspace. Works across all workspaces, the current workspace, or the current monitor.",
-  "kinds": ["service", "overlay"],
+  "description": "Windows/macOS-style Alt+Tab for Omarchy. Hold Alt and tap Tab through live previews of your windows, in most-recently-used order, then let go to jump to that window on its own workspace. Show all workspaces, only the current workspace, or only the current monitor.",
+  "kinds": [
+    "service",
+    "overlay"
+  ],
   "entryPoints": {
     "service": "Switcher.qml",
     "overlay": "Settings.qml"
-  }
+  },
+  "icon": "assets/icon.svg",
+  "preview": "preview.png"
 }
