@@ -8,8 +8,8 @@ import qs.Ui // qmllint disable import
 import "SettingsModel.js" as SettingsModel
 import "WindowList.js" as WindowList
 
-// Omalt-tab service. Hyprland drives it with custom events from
-// hypr/omalt-tab.lua: "open;<next|prev>;<snapshot>", then next / prev / up /
+// Omarchy Alt-Tab service. Hyprland drives it with custom events from
+// hypr/omarchy-alt-tab.lua: "open;<next|prev>;<snapshot>", then next / prev / up /
 // down / scope while the modifier is held, and commit or cancel at the end.
 // The overlay never takes keyboard focus, so the focused app is untouched
 // until the switch actually happens.
@@ -18,7 +18,7 @@ Item {
 
     property var shell: null
     property var manifest: null
-    readonly property string pluginId: String((root.manifest && root.manifest.id) || "io.github.jburchel.omalt-tab")
+    readonly property string pluginId: String((root.manifest && root.manifest.id) || "io.github.jburchel.omarchy-alt-tab")
 
     SettingsStore {
         id: store
@@ -224,13 +224,14 @@ Item {
             if (!event || event.name !== "custom")
                 return;
             var data = String(event.data || "");
-            if (data.indexOf("omalt-tab:") === 0)
-                root.handle(data.slice(10));
+            var prefix = "omarchy-alt-tab:";
+            if (data.indexOf(prefix) === 0)
+                root.handle(data.slice(prefix.length));
         }
     }
 
     IpcHandler {
-        target: "omalt-tab"
+        target: "omarchy-alt-tab"
         function settings(): string {
             return root.shell && root.shell.toggle(root.pluginId, "{}") ? "ok" : "unavailable";
         }
@@ -282,7 +283,7 @@ Item {
         screen: root.targetScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.namespace: "omalt-tab"
+        WlrLayershell.namespace: "omarchy-alt-tab"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         implicitWidth: frame.width

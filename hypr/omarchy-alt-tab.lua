@@ -1,12 +1,12 @@
--- Omalt-tab keybindings for Hyprland.
+-- Omarchy Alt-Tab keybindings for Hyprland.
 --
 -- Load from ~/.config/hypr/bindings.lua (see README):
 --
---   local omalt_tab = loadfile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.jburchel.omalt-tab/hypr/omalt-tab.lua")
---   if omalt_tab then omalt_tab()() end
+--   local omarchy_alt_tab = loadfile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.jburchel.omarchy-alt-tab/hypr/omarchy-alt-tab.lua")
+--   if omarchy_alt_tab then omarchy_alt_tab()() end
 --
 -- How it works: MOD+TAB snapshots every window in most-recently-used order,
--- hands that to the Omalt-tab shell service and enters the "omalt-tab" submap.
+-- hands that to the Omarchy Alt-Tab shell service and enters the "omarchy-alt-tab" submap.
 -- Inside the submap TAB / SHIFT+TAB / arrows move the highlight, and letting
 -- go of MOD commits. Hyprland itself resets the submap on release, so the
 -- keyboard can never get stuck here even if the shell is not running.
@@ -19,7 +19,7 @@ return function(opts)
   opts = opts or {}
   local mod = string.upper(opts.modifier or "ALT")
   local key = opts.key or "TAB"
-  local submap = "omalt-tab"
+  local submap = "omarchy-alt-tab"
 
   local release_keys = ({
     -- Meta_* is what Alt reports when Shift was already held.
@@ -29,7 +29,7 @@ return function(opts)
   })[mod] or { "Alt_L", "Alt_R", "Meta_L", "Meta_R" }
 
   local function send(message)
-    hl.dispatch(hl.dsp.event("omalt-tab:" .. message))
+    hl.dispatch(hl.dsp.event("omarchy-alt-tab:" .. message))
   end
 
   local function snapshot()
@@ -81,8 +81,8 @@ return function(opts)
   -- Replaces Omarchy's default ALT+TAB / ALT+SHIFT+TAB (cycle windows).
   hl.unbind(mod .. " + " .. key)
   hl.unbind(mod .. " + SHIFT + " .. key)
-  hl.bind(mod .. " + " .. key, open("next"), { description = "Window switcher (Omalt-tab)" })
-  hl.bind(mod .. " + SHIFT + " .. key, open("prev"), { description = "Window switcher in reverse (Omalt-tab)" })
+  hl.bind(mod .. " + " .. key, open("next"), { description = "Window switcher (Omarchy Alt-Tab)" })
+  hl.bind(mod .. " + SHIFT + " .. key, open("prev"), { description = "Window switcher in reverse (Omarchy Alt-Tab)" })
 
   hl.define_submap(submap, function()
     hl.bind(mod .. " + " .. key, relay("next"), { repeating = true })

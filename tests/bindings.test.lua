@@ -1,5 +1,5 @@
 -- Run: lua tests/bindings.test.lua   (from the plugin directory)
--- Loads hypr/omalt-tab.lua against a stub `hl` and checks the binds it makes
+-- Loads hypr/omarchy-alt-tab.lua against a stub `hl` and checks the binds it makes
 -- and what they dispatch.
 
 local function new_hl()
@@ -59,7 +59,7 @@ local function events(state)
   return out
 end
 
-local chunk = assert(loadfile("hypr/omalt-tab.lua"))
+local chunk = assert(loadfile("hypr/omarchy-alt-tab.lua"))
 
 -- Default (ALT) -----------------------------------------------------------
 do
@@ -74,7 +74,7 @@ do
   check(find(state, "ALT + SHIFT + TAB") ~= nil, "global ALT + SHIFT + TAB bind")
   for _, k in ipairs({ "ALT + TAB", "ALT + SHIFT + TAB", "ALT + right", "ALT + left", "ALT + down", "ALT + up",
                        "ALT + grave", "ALT + RETURN", "ALT + ESCAPE", "ESCAPE", "RETURN" }) do
-    check(find(state, k, "omalt-tab") ~= nil, "submap bind " .. k)
+    check(find(state, k, "omarchy-alt-tab") ~= nil, "submap bind " .. k)
   end
 
   -- Release binds: global, release, transparent, for every modifier combo.
@@ -93,15 +93,15 @@ do
   -- Opening: event payload in MRU order, unmapped window dropped, submap entered.
   open.fn()
   local ev = events(state)
-  check(ev[1] == "omalt-tab:open;next;ws=1;mon=DP-1;act=0xa;w=0xa@1@DP-1@p,0xb@2@DP-2@,0xd@-98@DP-1@",
+  check(ev[1] == "omarchy-alt-tab:open;next;ws=1;mon=DP-1;act=0xa;w=0xa@1@DP-1@p,0xb@2@DP-2@,0xd@-98@DP-1@",
     "open payload, got " .. tostring(ev[1]))
-  check(state.submap == "omalt-tab", "entered submap")
+  check(state.submap == "omarchy-alt-tab", "entered submap")
 
   -- Releasing Alt inside the switcher commits and resets; a second release is a no-op.
   local release = find(state, "ALT + Alt_L", "", true)
   release.fn()
   ev = events(state)
-  check(ev[#ev] == "omalt-tab:commit", "release commits")
+  check(ev[#ev] == "omarchy-alt-tab:commit", "release commits")
   check(state.submap == "", "release resets submap")
   local count = #state.dispatched
   find(state, "Alt_L", "", true).fn()
@@ -109,14 +109,14 @@ do
 
   -- Escape cancels.
   open.fn()
-  find(state, "ESCAPE", "omalt-tab").fn()
+  find(state, "ESCAPE", "omarchy-alt-tab").fn()
   ev = events(state)
-  check(ev[#ev] == "omalt-tab:cancel" and state.submap == "", "escape cancels and resets")
+  check(ev[#ev] == "omarchy-alt-tab:cancel" and state.submap == "", "escape cancels and resets")
 
   -- Reverse opening.
   find(state, "ALT + SHIFT + TAB").fn()
   ev = events(state)
-  check(ev[#ev]:find("^omalt%-tab:open;prev;") ~= nil, "shift opens in reverse")
+  check(ev[#ev]:find("^omarchy%-alt%-tab:open;prev;") ~= nil, "shift opens in reverse")
 end
 
 -- SUPER modifier ------------------------------------------------------------
@@ -138,7 +138,7 @@ do
 end
 
 -- The bindings.lua loader is a no-op when the plugin is gone.
-check(loadfile("/nonexistent/omalt-tab.lua") == nil, "loadfile of a missing plugin returns nil")
+check(loadfile("/nonexistent/omarchy-alt-tab.lua") == nil, "loadfile of a missing plugin returns nil")
 
 if failures > 0 then
   print(failures .. " failure(s)")

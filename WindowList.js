@@ -15,7 +15,7 @@ function normalizeAddress(value) {
     return /^0x[0-9a-f]+$/.test(text) ? text : "";
 }
 
-// Payload written by hypr/omalt-tab.lua:
+// Payload written by hypr/omarchy-alt-tab.lua:
 //   ws=<id>;mon=<name>;act=<address>;w=<address>@<ws id>@<monitor>@<flags>,...
 // Windows arrive most-recently-used first (Hyprland focus_history_id order).
 function parseSnapshot(text) {

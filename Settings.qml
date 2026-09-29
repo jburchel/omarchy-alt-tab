@@ -5,7 +5,7 @@ import qs.Commons // qmllint disable import
 import qs.Ui // qmllint disable import
 import "SettingsModel.js" as SettingsModel
 
-// Omalt-tab settings overlay: `omarchy-shell omalt-tab settings`.
+// Omarchy Alt-Tab settings overlay: `omarchy-shell omarchy-alt-tab settings`.
 // Up/Down pick a row, Left/Right change it, Space/Enter flip switches,
 // Escape closes. Every change is saved immediately.
 Item {
@@ -13,7 +13,7 @@ Item {
 
     property var shell: null
     property var manifest: null
-    readonly property string pluginId: String((root.manifest && root.manifest.id) || "io.github.jburchel.omalt-tab")
+    readonly property string pluginId: String((root.manifest && root.manifest.id) || "io.github.jburchel.omarchy-alt-tab")
 
     property bool opened: false
     property int cursor: 0
@@ -85,7 +85,7 @@ Item {
         anchors { top: true; bottom: true; left: true; right: true }
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.namespace: "omalt-tab-settings"
+        WlrLayershell.namespace: "omarchy-alt-tab-settings"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
@@ -143,7 +143,7 @@ Item {
                 spacing: Style.spacing.md
 
                 Text {
-                    text: "Omalt-tab"
+                    text: "Omarchy Alt-Tab"
                     color: Color.menu.text
                     font.family: Style.font.menuFamily
                     font.pixelSize: Style.font.heading

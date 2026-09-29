@@ -1,8 +1,8 @@
 #!/bin/bash
 # End-to-end tests against the live Hyprland session and Omarchy shell.
 #
-# Spawns throwaway foot windows (class omalt-test-*) on a spare workspace,
-# replays exactly what hypr/omalt-tab.lua dispatches (its real snapshot code,
+# Spawns throwaway foot windows (class alttab-test-*) on a spare workspace,
+# replays exactly what hypr/omarchy-alt-tab.lua dispatches (its real snapshot code,
 # the submap, the shell events) and checks the switcher's state and the
 # window that ends up focused. Physical key handling (Alt release) cannot be
 # injected; tests/bindings.test.lua covers how those binds are registered.
@@ -15,7 +15,7 @@
 set -u
 PLUGIN_DIR=$(cd "$(dirname "$0")/.." && pwd)
 SHOTS=${1:-}
-SNAP=$(sed -n '/local function snapshot()/,/^  end$/p' "$PLUGIN_DIR/hypr/omalt-tab.lua")
+SNAP=$(sed -n '/local function snapshot()/,/^  end$/p' "$PLUGIN_DIR/hypr/omarchy-alt-tab.lua")
 
 pass=0
 fail=0
@@ -24,23 +24,23 @@ bad() { fail=$((fail + 1)); printf '  FAIL %s\n' "$1"; [[ -n ${2:-} ]] && printf
 eq() { if [[ $2 == "$3" ]]; then ok "$1"; else bad "$1" "got: $2 | want: $3"; fi; }
 section() { printf '\n%s\n' "$1"; }
 
-state() { omarchy-shell omalt-tab state; }
+state() { omarchy-shell omarchy-alt-tab state; }
 st() { state | jq -r "$1"; }
 ipc() {
-  for _ in 1 2 3; do omarchy-shell omalt-tab "$@" >/dev/null 2>&1 && break; sleep 0.3; done
+  for _ in 1 2 3; do omarchy-shell omarchy-alt-tab "$@" >/dev/null 2>&1 && break; sleep 0.3; done
   sleep 0.15
 }
-send() { hyprctl dispatch "hl.dsp.event(\"omalt-tab:$1\")" >/dev/null; sleep 0.12; }
+send() { hyprctl dispatch "hl.dsp.event(\"omarchy-alt-tab:$1\")" >/dev/null; sleep 0.12; }
 open() {
   hyprctl eval "$SNAP
-hl.dispatch(hl.dsp.event('omalt-tab:open;${1:-next};' .. snapshot()))
-hl.dispatch(hl.dsp.submap('omalt-tab'))" >/dev/null
+hl.dispatch(hl.dsp.event('omarchy-alt-tab:open;${1:-next};' .. snapshot()))
+hl.dispatch(hl.dsp.submap('omarchy-alt-tab'))" >/dev/null
   sleep 0.3
 }
 # What the global Alt-release bind does.
 release() {
-  hyprctl eval "if hl.get_current_submap() == 'omalt-tab' then
-hl.dispatch(hl.dsp.event('omalt-tab:commit'))
+  hyprctl eval "if hl.get_current_submap() == 'omarchy-alt-tab' then
+hl.dispatch(hl.dsp.event('omarchy-alt-tab:commit'))
 hl.dispatch(hl.dsp.submap('reset'))
 end" >/dev/null
   sleep 0.6
@@ -50,7 +50,7 @@ active() { hyprctl activewindow -j | jq -r '.address // ""'; }
 focus() { hyprctl dispatch "hl.dsp.focus({ window = \"address:$1\" })" >/dev/null; sleep 0.35; }
 mru() { hyprctl clients -j | jq -r 'map(select(.mapped)) | sort_by(.focusHistoryID) | .[].address'; }
 addr_of() { hyprctl clients -j | jq -r --arg c "$1" '.[] | select(.class == $c) | .address'; }
-layer_up() { hyprctl layers -j | jq '[.. | objects | select(.namespace? == "omalt-tab")] | length > 0'; }
+layer_up() { hyprctl layers -j | jq '[.. | objects | select(.namespace? == "omarchy-alt-tab")] | length > 0'; }
 shot() { [[ -n $SHOTS ]] && grim -o "$(hyprctl monitors -j | jq -r '.[] | select(.focused).name')" "$SHOTS/$1.png"; }
 sorted() { jq -c 'sort'; }
 
@@ -62,13 +62,13 @@ for _ in $(seq 40); do
   if state >/dev/null 2>&1; then streak=$((streak + 1)); (( streak >= 3 )) && break; else streak=0; fi
   sleep 0.25
 done
-(( streak >= 3 )) || { echo "Omalt-tab service is not running in omarchy-shell"; exit 2; }
+(( streak >= 3 )) || { echo "Omarchy Alt-Tab service is not running in omarchy-shell"; exit 2; }
 [[ -n $SHOTS ]] && mkdir -p "$SHOTS"
 
 # --- setup / teardown --------------------------------------------------------
 ORIG=$(active)
 CURSOR=$(hyprctl cursorpos)
-SETTINGS=$(omarchy-shell omalt-tab status)
+SETTINGS=$(omarchy-shell omarchy-alt-tab status)
 used=$(hyprctl workspaces -j | jq -r '.[].id')
 TW=""
 for n in $(seq 11 40); do grep -qx "$n" <<<"$used" || { TW=$n; break; }; done
@@ -76,7 +76,7 @@ EMPTY=$((TW + 1))
 
 teardown() {
   cancel >/dev/null 2>&1
-  for c in omalt-test-1 omalt-test-2 omalt-test-3; do
+  for c in alttab-test-1 alttab-test-2 alttab-test-3; do
     a=$(addr_of $c)
     [[ -n $a ]] && hyprctl dispatch "hl.dsp.window.close({ window = \"address:$a\" })" >/dev/null
   done
@@ -84,7 +84,7 @@ teardown() {
     case $v in true) v=on ;; false) v=off ;; esac
     ipc "$k" "$v"
   done
-  [[ $(omarchy-shell omalt-tab status) == "$SETTINGS" ]] || echo "WARNING: settings not restored; were: $SETTINGS"
+  [[ $(omarchy-shell omarchy-alt-tab status) == "$SETTINGS" ]] || echo "WARNING: settings not restored; were: $SETTINGS"
   [[ -n $ORIG ]] && hyprctl dispatch "hl.dsp.focus({ window = \"address:$ORIG\" })" >/dev/null
   IFS=', ' read -r X Y <<<"$CURSOR"
   hyprctl dispatch "hl.dsp.cursor.move({ x = $X, y = $Y })" >/dev/null
@@ -92,10 +92,10 @@ teardown() {
 trap teardown EXIT
 
 for i in 1 2 3; do
-  hyprctl eval "hl.exec_cmd('foot -a omalt-test-$i sleep 300', { workspace = '$TW silent' })" >/dev/null
+  hyprctl eval "hl.exec_cmd('foot -a alttab-test-$i sleep 300', { workspace = '$TW silent' })" >/dev/null
 done
-for _ in $(seq 30); do [[ $(hyprctl clients -j | jq '[.[] | select(.class | startswith("omalt-test-"))] | length') == 3 ]] && break; sleep 0.2; done
-T1=$(addr_of omalt-test-1); T2=$(addr_of omalt-test-2); T3=$(addr_of omalt-test-3)
+for _ in $(seq 30); do [[ $(hyprctl clients -j | jq '[.[] | select(.class | startswith("alttab-test-"))] | length') == 3 ]] && break; sleep 0.2; done
+T1=$(addr_of alttab-test-1); T2=$(addr_of alttab-test-2); T3=$(addr_of alttab-test-3)
 [[ -n $T1 && -n $T2 && -n $T3 ]] || { echo "could not spawn test windows"; exit 2; }
 echo "test windows on workspace $TW: $T1 $T2 $T3"
 ipc scope all; ipc showDelay 0; ipc includeSpecial on; ipc previews on; ipc workspaceBadges on
@@ -157,9 +157,9 @@ section "Show delay"
 ipc showDelay 400
 focus "$T1"; M=($(mru))
 hyprctl eval "$SNAP
-hl.dispatch(hl.dsp.event('omalt-tab:open;next;' .. snapshot()))
-hl.dispatch(hl.dsp.submap('omalt-tab'))
-hl.dispatch(hl.dsp.event('omalt-tab:commit'))
+hl.dispatch(hl.dsp.event('omarchy-alt-tab:open;next;' .. snapshot()))
+hl.dispatch(hl.dsp.submap('omarchy-alt-tab'))
+hl.dispatch(hl.dsp.event('omarchy-alt-tab:commit'))
 hl.dispatch(hl.dsp.submap('reset'))" >/dev/null
 sleep 0.6
 eq "quick tap switches to the previous window" "$(active)" "${M[1]}"
@@ -204,10 +204,10 @@ send scope
 eq "backtick again returns to all workspaces" "$(st .scope)" all
 eq "... with the full list back" "$(st '.windows | length')" "$all"
 cancel
-eq "backtick does not change the saved scope" "$(omarchy-shell omalt-tab status | jq -r .scope)" all
+eq "backtick does not change the saved scope" "$(omarchy-shell omarchy-alt-tab status | jq -r .scope)" all
 
 section "Special workspaces"
-hyprctl dispatch "hl.dsp.window.move({ workspace = \"special:omalttest\", follow = false, window = \"address:$T3\" })" >/dev/null
+hyprctl dispatch "hl.dsp.window.move({ workspace = \"special:alttabtest\", follow = false, window = \"address:$T3\" })" >/dev/null
 sleep 0.4
 focus "$T1"
 ipc includeSpecial off
@@ -237,8 +237,8 @@ eq "closed window leaves the list" "$(state | jq --arg a "$T2" '.windows | index
 eq "selection stays on the same window" "$(st .selected)" "$T3"
 release
 eq "switch still lands on the selected window" "$(active)" "$T3"
-hyprctl eval "hl.exec_cmd('foot -a omalt-test-2 sleep 300', { workspace = '$TW silent' })" >/dev/null
-for _ in $(seq 30); do T2=$(addr_of omalt-test-2); [[ -n $T2 ]] && break; sleep 0.2; done
+hyprctl eval "hl.exec_cmd('foot -a alttab-test-2 sleep 300', { workspace = '$TW silent' })" >/dev/null
+for _ in $(seq 30); do T2=$(addr_of alttab-test-2); [[ -n $T2 ]] && break; sleep 0.2; done
 ipc scope all
 
 section "Empty workspace"
@@ -299,11 +299,11 @@ cancel
 ipc workspaceBadges on
 
 section "Settings IPC"
-eq "rejects an unknown scope" "$(omarchy-shell omalt-tab scope sideways)" "expected all, workspace or monitor"
-eq "clamps showDelay to 1000 ms" "$(omarchy-shell omalt-tab showDelay 5000)" 1000
+eq "rejects an unknown scope" "$(omarchy-shell omarchy-alt-tab scope sideways)" "expected all, workspace or monitor"
+eq "clamps showDelay to 1000 ms" "$(omarchy-shell omarchy-alt-tab showDelay 5000)" 1000
 saved=""
 for _ in $(seq 20); do
-  saved=$(jq -r '.plugins[] | select(.id == "io.github.jburchel.omalt-tab") | .showDelay' ~/.config/omarchy/shell.json)
+  saved=$(jq -r '.plugins[] | select(.id == "io.github.jburchel.omarchy-alt-tab") | .showDelay' ~/.config/omarchy/shell.json)
   [[ $saved == 1000 ]] && break
   sleep 0.1
 done
@@ -312,7 +312,7 @@ ipc showDelay 0
 
 section "Shell log"
 id=$(ls -t "$XDG_RUNTIME_DIR/quickshell/by-id" | head -1)
-warnings=$(quickshell log --id "$id" 2>/dev/null | grep -F "io.github.jburchel.omalt-tab/" | grep -iE "warn|error|TypeError|ReferenceError" | sort -u)
+warnings=$(quickshell log --id "$id" 2>/dev/null | grep -F "io.github.jburchel.omarchy-alt-tab/" | grep -iE "warn|error|TypeError|ReferenceError" | sort -u)
 if [[ -z $warnings ]]; then ok "no QML warnings from the plugin"; else bad "QML warnings from the plugin" "$warnings"; fi
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
