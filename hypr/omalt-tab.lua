@@ -99,7 +99,9 @@ return function(opts)
   end)
 
   -- Releasing MOD commits. Global binds (see the note at the top), guarded so
-  -- an ordinary Alt release does nothing. Release binds never swallow the key,
+  -- an ordinary Alt release does nothing. They must be transparent: once
+  -- MOD+TAB fires, Hyprland shadows every bind whose key is still held, which
+  -- would include these. Release binds never swallow the key,
   -- so apps still see Alt go up. Whether MOD is still in the modmask at
   -- release time varies, so bind every combination; once the first one has
   -- committed the submap is reset and the rest are no-ops.
@@ -111,7 +113,7 @@ return function(opts)
   end
   for _, release_key in ipairs(release_keys) do
     for _, mods in ipairs({ "", mod .. " + ", mod .. " + SHIFT + ", "SHIFT + " }) do
-      hl.bind(mods .. release_key, commit_on_release, { release = true })
+      hl.bind(mods .. release_key, commit_on_release, { release = true, transparent = true })
     end
   end
 end
