@@ -113,6 +113,7 @@ Live previews use roughly a third of one CPU core, and only while the switcher i
 - Omarchy Alt-Tab runs unsandboxed inside Omarchy Shell with your user's permissions.
 - It reads window, workspace and monitor state from Hyprland and focuses the window you choose.
 - Its only writes are to its own entry in `~/.config/omarchy/shell.json`.
+- Window titles, classes and workspace names are untrusted. They are always rendered as plain text, and titles are capped at 512 characters.
 - No network, no privilege escalation, no package installs, no install hooks, and no automatic keybinding changes.
 
 ## Tests
@@ -121,12 +122,13 @@ Run these from the plugin directory:
 
 ```sh
 node tests/window-list.test.js   # ordering, scopes, selection, layout, icon matching
+node tests/qml-text.test.js      # every Text item renders plain text (window titles are untrusted)
 lua tests/bindings.test.lua      # the Hyprland binds, against a stub `hl`
 tests/e2e.sh                     # end to end against your live session
 omarchy plugin validate .
 ```
 
-`tests/e2e.sh` needs `jq` and `foot`. It opens three throwaway terminals on a spare workspace and replays what the keybindings dispatch. It checks 59 things: ordering, stepping, wrap-around, scopes, special workspaces, windows closing mid-switch, empty workspaces, multiple monitors, fullscreen, the show delay and settings. Afterwards it restores your focus, cursor and settings.
+`tests/e2e.sh` needs `jq` and `foot`. It opens three throwaway terminals on a spare workspace and replays what the keybindings dispatch. It checks 61 things: ordering, stepping, wrap-around, scopes, special workspaces, windows closing mid-switch, empty workspaces, multiple monitors, fullscreen, the show delay, settings, and that markup in a window title (an `<img>` tag pointing at a local listener) is shown as text and never loaded. Afterwards it restores your focus, cursor and settings.
 
 Physical key presses can't be injected, so check these by hand after changing the bindings:
 - a quick Alt+Tab tap goes back to the previous window

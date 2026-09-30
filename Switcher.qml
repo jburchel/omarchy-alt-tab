@@ -324,6 +324,7 @@ Item {
                     implicitWidth: scopeLabel.implicitWidth + hint.implicitWidth + Style.spacing.huge
 
                     Text {
+                        textFormat: Text.PlainText
                         id: scopeLabel
                         anchors.left: parent.left
                         text: SettingsModel.scopeLabel(root.scope)
@@ -333,6 +334,7 @@ Item {
                         font.bold: true
                     }
                     Text {
+                        textFormat: Text.PlainText
                         id: hint
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
@@ -371,6 +373,7 @@ Item {
                 }
 
                 Text {
+                    textFormat: Text.PlainText
                     visible: root.windows.length === 0
                     text: "No windows here"
                     color: Color.menu.text

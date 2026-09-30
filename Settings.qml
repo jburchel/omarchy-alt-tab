@@ -143,6 +143,7 @@ Item {
                 spacing: Style.spacing.md
 
                 Text {
+                    textFormat: Text.PlainText
                     text: "Omarchy Alt-Tab"
                     color: Color.menu.text
                     font.family: Style.font.menuFamily
@@ -150,6 +151,7 @@ Item {
                     font.bold: true
                 }
                 Text {
+                    textFormat: Text.PlainText
                     width: parent.width
                     wrapMode: Text.Wrap
                     text: "Hold Alt, tap Tab to walk through windows, let go to switch. Shift+Tab or arrows go the other way."
@@ -196,12 +198,14 @@ Item {
                                 spacing: Style.spacing.xxs
 
                                 Text {
+                                    textFormat: Text.PlainText
                                     text: rowItem.modelData.label
                                     color: rowItem.current ? Color.menu.selectedText : Color.menu.text
                                     font.family: Style.font.menuFamily
                                     font.pixelSize: Style.font.body
                                 }
                                 Text {
+                                    textFormat: Text.PlainText
                                     visible: text !== ""
                                     width: parent.width
                                     wrapMode: Text.Wrap
@@ -243,6 +247,7 @@ Item {
                 }
 
                 Text {
+                    textFormat: Text.PlainText
                     topPadding: Style.spacing.md
                     text: "↑↓ choose   ←→ change   space toggle   esc close"
                     color: Color.menu.text

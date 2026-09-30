@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.jburchel.omarchy-alt-tab",
   "name": "Omarchy Alt-Tab",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Jim Burchel",
   "license": "MIT",
   "description": "Windows/macOS-style Alt+Tab for Omarchy. Hold Alt and tap Tab through live previews of your windows, in most-recently-used order, then let go to jump to that window on its own workspace. Show all workspaces, only the current workspace, or only the current monitor.",

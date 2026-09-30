@@ -19,12 +19,16 @@ Rectangle {
     signal clicked()
 
     readonly property int inset: Math.max(Style.space(6), Math.round(width * 0.035))
+    // Window titles and classes are untrusted: every Text here is PlainText,
+    // and the title is capped before it is laid out.
+    readonly property int titleLimit: 512
     readonly property string title: {
         var t = card.toplevel ? String(card.toplevel.title || "") : "";
-        if (t)
-            return t;
-        var ipc = card.toplevel && card.toplevel.lastIpcObject ? card.toplevel.lastIpcObject : {};
-        return String(ipc.class || "Window");
+        if (!t) {
+            var ipc = card.toplevel && card.toplevel.lastIpcObject ? card.toplevel.lastIpcObject : {};
+            t = String(ipc.class || "Window");
+        }
+        return t.length > card.titleLimit ? t.slice(0, card.titleLimit) : t;
     }
 
     radius: Style.cornerRadius
@@ -51,6 +55,7 @@ Rectangle {
             smooth: true
         }
         Text {
+            textFormat: Text.PlainText
             width: titleRow.width - smallIcon.width - titleRow.spacing
             anchors.verticalCenter: smallIcon.verticalCenter
             text: card.title
@@ -117,6 +122,7 @@ Rectangle {
             smooth: true
         }
         Text {
+            textFormat: Text.PlainText
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
             text: card.title
@@ -146,6 +152,7 @@ Rectangle {
         z: 3
 
         Text {
+            textFormat: Text.PlainText
             id: badgeText
             anchors.centerIn: parent
             text: card.workspace

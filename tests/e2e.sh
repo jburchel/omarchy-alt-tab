@@ -76,7 +76,8 @@ EMPTY=$((TW + 1))
 
 teardown() {
   cancel >/dev/null 2>&1
-  for c in alttab-test-1 alttab-test-2 alttab-test-3; do
+  [[ -n ${PROBE_PID:-} ]] && kill "$PROBE_PID" 2>/dev/null
+  for c in alttab-test-1 alttab-test-2 alttab-test-3 alttab-test-probe; do
     a=$(addr_of $c)
     [[ -n $a ]] && hyprctl dispatch "hl.dsp.window.close({ window = \"address:$a\" })" >/dev/null
   done
@@ -297,6 +298,36 @@ open next
 shot 04-no-badges
 cancel
 ipc workspaceBadges on
+
+section "Untrusted window titles"
+# A window title carrying an <img> tag must be shown as text, never loaded.
+PROBE_DIR=$(mktemp -d)
+PROBE_PORT=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
+(cd "$PROBE_DIR" && exec python3 -m http.server "$PROBE_PORT" --bind 127.0.0.1) >"$PROBE_DIR/server.log" 2>&1 &
+PROBE_PID=$!
+cat >"$PROBE_DIR/title.sh" <<PROBE
+#!/bin/sh
+printf '\\033]2;<img src="http://127.0.0.1:$PROBE_PORT/omarchy-alt-tab-probe.png">\\007'
+exec sleep 300
+PROBE
+chmod +x "$PROBE_DIR/title.sh"
+hyprctl eval "hl.exec_cmd('foot -a alttab-test-probe $PROBE_DIR/title.sh', { workspace = '$TW silent' })" >/dev/null
+for _ in $(seq 30); do [[ -n $(addr_of alttab-test-probe) ]] && break; sleep 0.2; done
+sleep 1
+eq "probe window has the markup title" "$(hyprctl clients -j | jq -r '.[] | select(.class == "alttab-test-probe") | .title' | grep -c '<img src=')" 1
+focus "$T1"
+for mode in on off; do
+  ipc previews "$mode"
+  open next; sleep 2; shot "05-markup-title-previews-$mode"; cancel
+done
+ipc previews on
+if grep -q "omarchy-alt-tab-probe" "$PROBE_DIR/server.log"; then
+  bad "markup in a window title is not loaded as an image" "$(grep probe "$PROBE_DIR/server.log")"
+else
+  ok "markup in a window title is not loaded as an image"
+fi
+kill "$PROBE_PID" 2>/dev/null; PROBE_PID=""
+a=$(addr_of alttab-test-probe); [[ -n $a ]] && hyprctl dispatch "hl.dsp.window.close({ window = \"address:$a\" })" >/dev/null
 
 section "Settings IPC"
 eq "rejects an unknown scope" "$(omarchy-shell omarchy-alt-tab scope sideways)" "expected all, workspace or monitor"
