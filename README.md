@@ -1,6 +1,7 @@
 # Omarchy Alt-Tab
 
-Windows / macOS-style **Alt+Tab** for Omarchy.
+**The Alt+Tab your hands already know**, with live previews of every window. Windows /
+macOS-style switching for Omarchy.
 
 ![Omarchy Alt-Tab switcher](preview.png)
 
@@ -137,6 +138,19 @@ Physical key presses can't be injected, so check these by hand after changing th
 - pressing Shift before Alt still switches on release
 
 After editing `Switcher.qml` or `SwitcherCard.qml`, run `omarchy restart shell`, because the shell caches service QML. The settings overlay reloads on save.
+
+## More Omarchy plugins by Jim Burchel
+
+- **[Meeting Mode](https://github.com/jburchel/omarchy-meeting-mode)**: join any call and your
+  desktop goes quiet by itself (Do Not Disturb, no idle lock, night light off); hang up and it
+  all comes back.
+- **[Workspace Names & Icons](https://github.com/jburchel/omarchy-workspace-nameplates)**: give
+  every workspace a name and an icon right in the bar. Double-click to edit; the numbers stay.
+- **[Jarvis](https://github.com/jburchel/omarchy-jarvis)**: a voice for the AI agent in your
+  terminal. Claude Code, Codex or Gemini CLI read their replies aloud, and "Hey Jarvis" starts
+  hands-free dictation.
+
+If Alt+Tab finally feels right on Omarchy, a ⭐ on GitHub helps other people find it.
 
 ## License
 
