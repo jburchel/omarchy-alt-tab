@@ -156,7 +156,7 @@ Item {
     function focusWindow(address) {
         if (!/^0x[0-9a-f]+$/.test(address))
             return;
-        Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ window = \"address:" + address + "\" })"]);
+        Quickshell.execDetached(["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ window = \"address:" + address + "\" })); hl.dispatch(hl.dsp.window.bring_to_top())"]);
     }
 
     function toplevelFor(address) {
